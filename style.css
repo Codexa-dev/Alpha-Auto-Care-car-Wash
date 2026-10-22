@@ -134,3 +134,4 @@ input[aria-invalid="true"],select[aria-invalid="true"]{border-color:var(--red-br
 .compare-range{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;pointer-events:none}
 .compare-range:focus-visible~.compare-handle span{outline:3px solid var(--red-bright);outline-offset:3px}
 @media (max-width:900px){.ba{grid-template-columns:1fr}} 
+.compare{touch-action:none;cursor:ew-resize;user-select:none}
