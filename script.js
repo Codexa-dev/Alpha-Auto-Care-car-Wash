@@ -80,3 +80,34 @@ if (form) {
     window.open(waLink(lines.join("\n")), "_blank", "noopener");
   });
 }
+
+// Before & After slider: drag with mouse or finger, or use the keyboard on the hidden range input
+document.querySelectorAll("[data-compare]").forEach((box) => {
+  const range = box.querySelector(".compare-range");
+  const setPos = (v) => {
+    v = Math.min(100, Math.max(0, v));
+    range.value = v;
+    range.setAttribute("aria-valuetext", `Showing ${Math.round(v)}% of the before image`);
+    box.style.setProperty("--pos", v + "%");
+  };
+  const fromPointer = (e) => {
+    const r = box.getBoundingClientRect();
+    setPos(((e.clientX - r.left) / r.width) * 100);
+  };
+  box.addEventListener("pointerdown", (e) => {
+    box.setPointerCapture(e.pointerId);
+    fromPointer(e);
+  });
+  // Focus after the press ends (a mouse press would otherwise move focus away) so arrow keys work next
+  box.addEventListener("pointerup", () => range.focus({ preventScroll: true }));
+  box.addEventListener("pointermove", (e) => box.hasPointerCapture(e.pointerId) && fromPointer(e));
+  range.addEventListener("input", () => setPos(+range.value));
+  range.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      setPos(+range.value + (e.key === "ArrowRight" ? 5 : -5));
+    }
+  });
+  setPos(+range.value);
+});
+
