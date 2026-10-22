@@ -80,10 +80,12 @@ if (form) {
     window.open(waLink(lines.join("\n")), "_blank", "noopener");
   });
 }
-
-// Before & After slider: drag with mouse or finger, or use the keyboard on the hidden range input
+// Before & After slider: drag with mouse or finger, or use the arrow keys
 document.querySelectorAll("[data-compare]").forEach((box) => {
   const range = box.querySelector(".compare-range");
+  if (!range) return;
+  let dragging = false;
+
   const setPos = (v) => {
     v = Math.min(100, Math.max(0, v));
     range.value = v;
@@ -94,13 +96,20 @@ document.querySelectorAll("[data-compare]").forEach((box) => {
     const r = box.getBoundingClientRect();
     setPos(((e.clientX - r.left) / r.width) * 100);
   };
+
   box.addEventListener("pointerdown", (e) => {
-    box.setPointerCapture(e.pointerId);
+    dragging = true;
+    e.preventDefault();
     fromPointer(e);
   });
-  // Focus after the press ends (a mouse press would otherwise move focus away) so arrow keys work next
-  box.addEventListener("pointerup", () => range.focus({ preventScroll: true }));
-  box.addEventListener("pointermove", (e) => box.hasPointerCapture(e.pointerId) && fromPointer(e));
+  window.addEventListener("pointermove", (e) => dragging && fromPointer(e));
+  window.addEventListener("pointerup", () => {
+    if (!dragging) return;
+    dragging = false;
+    range.focus({ preventScroll: true });
+  });
+  window.addEventListener("pointercancel", () => (dragging = false));
+
   range.addEventListener("input", () => setPos(+range.value));
   range.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -110,78 +119,5 @@ document.querySelectorAll("[data-compare]").forEach((box) => {
   });
   setPos(+range.value);
 });
-.ba-figure .compare {
-    position: relative;
-    overflow: hidden;
-    touch-action: pan-y;      /* allows horizontal dragging without scrolling the page */
-    user-select: none;
-    cursor: ew-resize;
-}
 
-.ba-figure .compare img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 1;
-    pointer-events: none;
-    -webkit-user-drag: none;
-}
-
-/* Before image sits on top and is revealed up to the slider position */
-.ba-figure .compare img:nth-of-type(2) {
-    clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0);
-    z-index: 2;
-}
-
-.ba-figure .compare-handle {
-    position: absolute !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    left: var(--pos, 50%) !important;
-    width: 3px;
-    background: #ffffff;
-    transform: translateX(-50%);
-    z-index: 10;
-    pointer-events: none;
-}
-
-.ba-figure .compare-handle > span {
-    position: absolute;
-    top: 50% !important;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    border: 4px solid #ffffff;
-    border-radius: 50%;
-    background: #e11d2e;
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-/* BEFORE / AFTER labels stay above everything */
-.ba-figure .compare-label {
-    position: absolute;
-    top: 12px;
-    z-index: 20;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #ffffff;
-    pointer-events: none;
-}
-.ba-figure .compare-label.before { left: 12px;  background: #252525; }
-.ba-figure .compare-label.after  { right: 12px; background: #e11d2e; }
-
-@media (max-width: 600px) {
-    .ba-figure .compare-handle > span { width: 40px; height: 40px; }
-}
 
